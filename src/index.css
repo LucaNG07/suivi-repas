@@ -82,6 +82,10 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  min-width: 320px;
+  min-height: 100vh;
   background: #020617;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, Avenir, Helvetica, Arial, sans-serif;
+  color: rgba(255, 255, 255, 0.87);
 }
+
