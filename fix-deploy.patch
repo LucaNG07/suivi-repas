@@ -1,0 +1,177 @@
+diff --git a/vite.config.js b/vite.config.js
+--- a/vite.config.js
++++ b/vite.config.js
+@@ -1,19 +1,24 @@
+ import { defineConfig } from 'vite'
+-import vue from '@vitejs/plugin-vue'
++import react from '@vitejs/plugin-react'
+ 
+-// Définit ngrokHost depuis l'environnement, sinon null
+-const ngrokHost = process.env.NGROK_HOST || null;
+-
+-export default defineConfig({
+-  base: '/suivi-repas/',  // <-- nom exact de ton repo
+-  plugins: [vue()],
++// Définit ngrokHost depuis l'environnement, sinon null
++const ngrokHost = process.env.NGROK_HOST || null;
++
++export default defineConfig({
++  // base relative pour éviter les 404 sur GitHub Pages
++  base: './',
++  plugins: [react()],
+   server: {
+     host: true,
+     port: 5173,
+     strictPort: true,
+-    hmr: ngrokHost ? { protocol: 'wss', host: ngrokHost, port: 443 } : true,
+-    fs: { strict: false },
+-    cors: true,
+-    allowedHosts: 'all'
++    hmr: ngrokHost ? { protocol: 'wss', host: ngrokHost, port: 443 } : true,
++    fs: { strict: false },
++    cors: true,
++    // allow ngrok host when provided via NGROK_HOST env
++    allowedHosts: ngrokHost ? ['localhost', ngrokHost] : 'all'
+   },
+   preview: {
+     host: '0.0.0.0',
+     port: 5173,
+     cors: true
+   }
+ })
+diff --git a/src/index.css b/src/index.css
+--- a/src/index.css
++++ b/src/index.css
+@@ -1,99 +1,94 @@
+ :root {
+   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+   line-height: 1.5;
+   font-weight: 400;
+ 
+   color-scheme: light dark;
+   color: rgba(255, 255, 255, 0.87);
+   background-color: #242424;
+ 
+   font-synthesis: none;
+   text-rendering: optimizeLegibility;
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
+ }
+ 
+ a {
+   font-weight: 500;
+   color: #646cff;
+   text-decoration: inherit;
+ }
+ a:hover {
+   color: #535bf2;
+ }
+ 
+-body {
+-  margin: 0;
+-  display: flex;
+-  place-items: center;
+-  min-width: 320px;
+-  min-height: 100vh;
+-}
++h1 {
++  font-size: 3.2em;
++  line-height: 1.1;
++}
++
++button {
++  border-radius: 8px;
++  border: 1px solid transparent;
++  padding: 0.6em 1.2em;
++  font-size: 1em;
++  font-weight: 500;
++  font-family: inherit;
++  background-color: #1a1a1a;
++  cursor: pointer;
++  transition: border-color 0.25s;
++}
++button:hover {
++  border-color: #646cff;
++}
++button:focus,
++button:focus-visible {
++  outline: 4px auto -webkit-focus-ring-color;
++}
+@@ -101,22 +96,23 @@
+   a:hover {
+     color: #747bff;
+   }
+   button {
+     background-color: #f9f9f9;
+   }
+ }
+ * {
+   box-sizing: border-box;
+ }
+ 
+ html,
+ body {
+   margin: 0;
+   padding: 0;
+   width: 100%;
+   height: 100%;
+ }
+ 
+-body {
+-  display: flex;
+-  justify-content: center;
+-  align-items: center;
+-  background: #020617;
+-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+-}
++body {
++  display: flex;
++  justify-content: center;
++  align-items: center;
++  min-width: 320px;
++  min-height: 100vh;
++  background: #020617;
++  font-family: system-ui, -apple-system, BlinkMacSystemFont, Avenir, Helvetica, Arial, sans-serif;
++  color: rgba(255, 255, 255, 0.87);
++}
+diff --git a/.github/workflows/gh-pages.yml b/.github/workflows/gh-pages.yml
+new file mode 100644
+--- /dev/null
++++ b/.github/workflows/gh-pages.yml
+@@ -0,0 +1,26 @@
++name: Deploy to GitHub Pages
++
++on:
++  push:
++    branches:
++      - main
++
++jobs:
++  build-and-deploy:
++    runs-on: ubuntu-latest
++    permissions:
++      contents: read
++      pages: write
++      id-token: write
++
++    steps:
++      - name: Checkout
++        uses: actions/checkout@v4
++
++      - name: Use Node.js
++        uses: actions/setup-node@v4
++        with:
++          node-version: '18'
++
++      - name: Install deps
++        run: npm ci
++
++      - name: Build
++        run: npm run build
++
++      - name: Deploy to GitHub Pages
++        uses: peaceiris/actions-gh-pages@v3
++        with:
++          github_token: ${{ secrets.GITHUB_TOKEN }}
++          publish_dir: ./dist
++          publish_branch: gh-pages
